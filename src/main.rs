@@ -84,8 +84,8 @@ pub fn handle_command(
         } => {
             let event = Event::AmountDeposited { trx_id, amount };
             projection_store.update_for_client(client_id, &event);
-            let a =
-                projection_store.insert_transaction(client_id, trx_id, TransactionType::Deposit);
+            let _ =
+                projection_store.insert_transaction(client_id, trx_id,amount,TransactionType::Deposit);
             event_store.apply(client_id, event);
         }
         Command::Withdrawal {
@@ -101,25 +101,34 @@ pub fn handle_command(
 
             let event = Event::AmountWithdrawn { trx_id, amount };
             projection_store.update_for_client(client_id, &event);
-            projection_store.insert_transaction(client_id, trx_id, TransactionType::Withdrawal);
+            projection_store.insert_transaction(client_id, trx_id,amount, TransactionType::Withdrawal);
             event_store.apply(client_id, event);
         }
         Command::Dispute { client_id, trx_id } => {
+            let trx = projection_store.get_client_transaction(client_id, trx_id);
+            if trx.is_none() { return }
+
             let event = Event::DisputeRaised { trx_id };
             projection_store.update_for_client(client_id, &event);
-            projection_store.insert_transaction(client_id, trx_id, TransactionType::Dispute);
+            projection_store.insert_transaction(client_id, trx_id, 0.0, TransactionType::Dispute);
             event_store.apply(client_id, event);
         }
         Command::Resolve { client_id, trx_id } => {
+            let trx = projection_store.get_client_transaction(client_id, trx_id);
+            if trx.is_none() { return }
+
             let event = Event::DisputeResolved { trx_id };
             projection_store.update_for_client(client_id, &event);
-            projection_store.insert_transaction(client_id, trx_id, TransactionType::Resolve);
+            projection_store.insert_transaction(client_id, trx_id,0.0, TransactionType::Resolve);
             event_store.apply(client_id, event);
         }
         Command::Chargeback { client_id, trx_id } => {
+            let trx = projection_store.get_client_transaction(client_id, trx_id);
+            if trx.is_none() { return }
+
             let event = Event::ChargebackIssued { trx_id };
             projection_store.update_for_client(client_id, &event);
-            projection_store.insert_transaction(client_id, trx_id, TransactionType::Chargeback);
+            projection_store.insert_transaction(client_id, trx_id, 0.0,TransactionType::Chargeback);
             event_store.apply(client_id, event);
         }
     }

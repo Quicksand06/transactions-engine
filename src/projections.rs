@@ -95,13 +95,14 @@ impl ProjectionStore {
         &mut self,
         client_id: u16,
         trx_id: u32,
+        amount: f64,
         trx_type: TransactionType,
     ) -> bool {
         self.client_transactions
             .insert(
                 (client_id, trx_id),
                 Transaction {
-                    amount: 0.0,
+                    amount,
                     trx_type,
                 },
             )
