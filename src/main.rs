@@ -4,12 +4,6 @@ use std::fs::File;
 
 use trx_engine::{CommandHandler, CsvParser, EventStore, ProjectionStore};
 
-mod commands;
-mod event_store;
-mod events;
-mod handlers;
-mod projections;
-
 fn main() -> Result<(), Box<dyn Error>> {
     let path = env::args()
         .nth(1)
@@ -36,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             CommandHandler::handle_command(&mut event_store, &mut projection_store, cmd);
         }
     }
-    let output = projection_store.output();
+
     println!("client,available,held,total,locked");
     for o in projection_store.output() {
         println!(
