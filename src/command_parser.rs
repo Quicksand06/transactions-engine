@@ -1,9 +1,9 @@
 use crate::Command;
 use csv::StringRecord;
 
-pub struct CsvParser {}
+pub struct CommandParser;
 
-impl CsvParser {
+impl CommandParser {
     pub fn parse_command(record: &StringRecord) -> Option<Command> {
         let trx_type = record.get(0)?;
         let client_id: u16 = record.get(1)?.parse().ok()?;

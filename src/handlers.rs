@@ -3,7 +3,7 @@ use crate::event_store::EventStore;
 use crate::events::Event;
 use crate::projections::{ProjectionStore, TransactionType};
 
-pub struct CommandHandler {}
+pub struct CommandHandler;
 
 impl CommandHandler {
     pub fn handle_command(
