@@ -59,6 +59,6 @@ pub fn write_accounts_csv<W: Write>(
             r.client_id, r.available, r.held, r.total, r.locked
         )?;
     }
-    
+
     Ok(())
 }

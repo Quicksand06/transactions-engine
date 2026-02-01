@@ -5,12 +5,13 @@ pub struct CommandParser;
 
 impl CommandParser {
     pub fn parse_command(record: &StringRecord) -> Option<Command> {
-        let trx_type = record.get(0)?;
-        let client_id: u16 = record.get(1)?.parse().ok()?;
-        let trx_id: u32 = record.get(2)?.parse().ok()?;
+        let trx_type = record.get(0)?.trim();
+        let client_id: u16 = record.get(1)?.trim().parse().ok()?;
+        let trx_id: u32 = record.get(2)?.trim().parse().ok()?;
+
         match trx_type {
             "deposit" => {
-                let amount: f64 = record.get(3)?.parse().ok()?;
+                let amount: f64 = record.get(3)?.trim().parse().ok()?;
                 Some(Command::Deposit {
                     client_id,
                     trx_id,
@@ -18,7 +19,7 @@ impl CommandParser {
                 })
             }
             "withdrawal" => {
-                let amount: f64 = record.get(3)?.parse().ok()?;
+                let amount: f64 = record.get(3)?.trim().parse().ok()?;
                 Some(Command::Withdrawal {
                     client_id,
                     trx_id,

@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use trx_engine::{
-        process_csv_file, EventStore, ProjectionStore,
-    };
+    use trx_engine::{EventStore, ProjectionStore, process_csv_file};
 
     fn round4(v: f64) -> f64 {
         (v * 10_000.0).round() / 10_000.0
