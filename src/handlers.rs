@@ -1,6 +1,6 @@
 use crate::commands::Command;
-use crate::event_store::EventStore;
 use crate::events::Event;
+use crate::EventStore;
 use crate::projections::{ProjectionStore, TransactionType};
 
 pub struct CommandHandler;
