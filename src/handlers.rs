@@ -19,7 +19,7 @@ impl CommandHandler {
             } => {
                 let event = Event::AmountDeposited { amount };
                 projection_store.update_for_client(client_id, &event);
-                let _ = projection_store.insert_transaction(
+                projection_store.insert_transaction(
                     client_id,
                     trx_id,
                     amount,
@@ -49,6 +49,7 @@ impl CommandHandler {
                 event_store.apply(client_id, event);
             }
             Command::Dispute { client_id, trx_id } => {
+                // no trx - skip (by spec)
                 let Some(trx) = projection_store.get_client_transaction(client_id, trx_id) else {
                     return;
                 };
@@ -58,6 +59,7 @@ impl CommandHandler {
                 event_store.apply(client_id, event);
             }
             Command::Resolve { client_id, trx_id } => {
+                // no trx - skip (by spec)
                 let Some(trx) = projection_store.get_client_transaction(client_id, trx_id) else {
                     return;
                 };

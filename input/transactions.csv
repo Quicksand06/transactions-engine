@@ -10,7 +10,7 @@ deposit,101,4004,100.123
 withdrawal,101,4005,1.434
 deposit,102,5001,7.0
 withdrawal,102,5002,2.5434
-dispute,102,5001,
+dispute,102,5001
 resolve,102,5001
 deposit,103,6001,1.0
-dispute,103,9999,
+dispute,103,9999

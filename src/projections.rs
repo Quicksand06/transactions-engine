@@ -113,10 +113,18 @@ impl ProjectionStore {
         trx_id: u32,
         amount: f64,
         trx_type: TransactionType,
-    ) -> bool {
-        self.client_transactions
-            .insert((client_id, trx_id), Transaction { amount, trx_type })
-            .is_some()
+    ) {
+        use std::collections::hash_map::Entry;
+
+        match self.client_transactions.entry((client_id, trx_id)) {
+            Entry::Vacant(v) => {
+                v.insert(Transaction { amount, trx_type });
+            }
+            Entry::Occupied(_) => {
+                // duplicate tx: skip (by spec)
+                eprintln!("Duplicate transaction: client={} tx={}", client_id, trx_id);
+            }
+        }
     }
 
     /// Returns a mutable reference to the client's account
