@@ -31,14 +31,6 @@ mod tests {
         projection_store
     }
 
-    /*fn assert_f64_close(actual: f64, expected: f64, eps: f64) {
-        let diff = (actual - expected).abs();
-        assert!(
-            diff <= eps,
-            "expected {expected}, got {actual}, diff {diff} > eps {eps}"
-        );
-    }*/
-
     fn round4(v: f64) -> f64 {
         (v * 10_000.0).round() / 10_000.0
     }
