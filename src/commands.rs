@@ -1,3 +1,5 @@
+/// Command is a request to change the state of the system
+/// Basically an intention, not yet a fact
 #[derive(Debug)]
 pub enum Command {
     Deposit {

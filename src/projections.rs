@@ -1,7 +1,7 @@
 use crate::events::Event;
 use std::collections::HashMap;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ClientAccount {
     pub total: f64,
     pub held: f64,
@@ -9,17 +9,53 @@ pub struct ClientAccount {
     pub locked: bool,
 }
 
+// Mutations
+impl ClientAccount {
+    pub fn deposit(&mut self, amount: f64) {
+        self.total += amount;
+        self.available = self.total - self.held;
+    }
+
+    pub fn withdraw(&mut self, amount: f64) {
+        self.total -= amount;
+        self.available = self.total - self.held;
+    }
+
+    pub fn freeze(&mut self, amount: f64) {
+        self.held += amount;
+        self.available = self.total - self.held;
+    }
+
+    pub fn unfreeze(&mut self, amount: f64) {
+        self.held -= amount;
+        self.available = self.total - self.held;
+    }
+
+    pub fn lock(&mut self, amount: f64) {
+        self.held -= amount;
+        self.total -= amount;
+        self.available = self.total - self.held;
+        self.locked = true;
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ClientAccountDto {
+    pub client_id: u16,
+    pub available: f64,
+    pub held: f64,
+    pub total: f64,
+    pub locked: bool,
+}
+
 pub struct Transaction {
-    amount: f64,
-    trx_type: TransactionType,
+    pub amount: f64,
+    pub trx_type: TransactionType,
 }
 
 pub enum TransactionType {
     Deposit,
     Withdrawal,
-    Dispute,
-    Resolve,
-    Chargeback,
 }
 
 #[derive(Default)]
@@ -29,64 +65,44 @@ pub struct ProjectionStore {
 }
 
 impl ProjectionStore {
-    pub fn output(&self) -> Vec<String> {
+    pub fn output(&self) -> Vec<ClientAccountDto> {
         self.clients
             .iter()
-            .map(|(client_id, client)| {
-                format!(
-                    "{}, {}, {}, {}, {}",
-                    client_id, client.available, client.held, client.total, client.locked
-                )
+            .map(|(&client_id, account)| ClientAccountDto {
+                client_id,
+                available: account.available,
+                held: account.held,
+                total: account.total,
+                locked: account.locked,
             })
             .collect()
     }
 
+    // No validations here, apply event as a statement of fact
     pub fn update_for_client(&mut self, client_id: u16, event: &Event) {
         if self.clients.get(&client_id).is_none() {
             self.clients.insert(client_id, ClientAccount::default());
         }
         match event {
-            Event::AmountDeposited { trx_id, amount } => {
+            Event::AmountDeposited { amount } => {
                 let client = self.clients.get_mut(&client_id).unwrap();
-                client.total += amount;
-                client.available = client.total - client.held;
+                client.deposit(*amount);
             }
-            Event::AmountWithdrawn { trx_id, amount } => {
+            Event::AmountWithdrawn { amount } => {
                 let client = self.clients.get_mut(&client_id).unwrap();
-                client.total -= amount;
-                client.available = client.total - client.held;
+                client.withdraw(*amount);
             }
-            Event::DisputeRaised { trx_id } => {
-                let amount = self
-                    .client_transactions
-                    .get(&(client_id, *trx_id))
-                    .unwrap()
-                    .amount;
+            Event::DisputeRaised { amount } => {
                 let client = self.clients.get_mut(&client_id).unwrap();
-                client.held += amount;
-                client.available = client.total - client.held;
+                client.freeze(*amount);
             }
-            Event::DisputeResolved { trx_id } => {
-                let amount = self
-                    .client_transactions
-                    .get(&(client_id, *trx_id))
-                    .unwrap()
-                    .amount;
+            Event::DisputeResolved { amount } => {
                 let client = self.clients.get_mut(&client_id).unwrap();
-                client.held -= amount;
-                client.available = client.total - client.held;
+                client.unfreeze(*amount);
             }
-            Event::ChargebackIssued { trx_id } => {
-                let amount = self
-                    .client_transactions
-                    .get(&(client_id, *trx_id))
-                    .unwrap()
-                    .amount;
+            Event::ChargebackIssued { amount } => {
                 let client = self.clients.get_mut(&client_id).unwrap();
-                client.held = 0.0;
-                client.total -= amount;
-                client.available = client.total - client.held;
-                client.locked = true;
+                client.lock(*amount);
             }
         }
     }
@@ -99,16 +115,12 @@ impl ProjectionStore {
         trx_type: TransactionType,
     ) -> bool {
         self.client_transactions
-            .insert(
-                (client_id, trx_id),
-                Transaction {
-                    amount,
-                    trx_type,
-                },
-            )
+            .insert((client_id, trx_id), Transaction { amount, trx_type })
             .is_some()
     }
 
+    /// Returns a mutable reference to the client's account
+    /// optionally create a new one on the fly
     pub fn get_client_account(&mut self, client_id: u16) -> &ClientAccount {
         self.clients
             .entry(client_id)

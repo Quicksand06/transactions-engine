@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
+/// Event is a fact that smth has happened with the account
 #[derive(Debug)]
 pub enum Event {
-    AmountDeposited { trx_id: u32, amount: f64 },
-    AmountWithdrawn { trx_id: u32, amount: f64 },
-    DisputeRaised { trx_id: u32 },
-    DisputeResolved { trx_id: u32 },
-    ChargebackIssued { trx_id: u32 },
+    AmountDeposited { amount: f64 },
+    AmountWithdrawn { amount: f64 },
+    DisputeRaised { amount: f64 },
+    DisputeResolved { amount: f64 },
+    ChargebackIssued { amount: f64 },
 }
